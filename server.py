@@ -42,6 +42,11 @@ class Server(object):
     free to develop any room descriptions you like: the only requirement is that
     each room have a unique description.
     """
+    ROOM_DESCRIPTIONS = {0: "The Kitchen",
+             1: "The Living Room",
+             2: "The Bathroom",
+             3: "The Bedroom"
+             }
 
     game_name = "Realms of Venture"
 
@@ -78,10 +83,7 @@ class Server(object):
         :param room_number: int
         :return: str
         """
-
-        # TODO: YOUR CODE HERE
-
-        pass
+        return self.ROOM_DESCRIPTIONS.get(room_number)
 
     def greet(self):
         """
@@ -107,10 +109,14 @@ class Server(object):
          
         :return: None 
         """
-
-        # TODO: YOUR CODE HERE
-
-        pass
+        try:
+            while True:
+                self.input_buffer = self.client_connection.recv(255).decode()
+                if len(self.input_buffer) < 255:
+                    break
+    
+        except Exception as e:
+            raise(e)
 
     def move(self, argument):
         """
@@ -133,9 +139,18 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
+        room_movement_mapper = {(0, 'north'): 3,
+                                (0, 'west'): 1,
+                                (0, 'east'): 2,
+                                (1, 'east'): 0,
+                                (3, 'south'): 0,
+                                (2, 'west'): 0
+                                }
+        next_room = room_movement_mapper.get((self.room, argument))
+        if next_room:
+            self.room = next_room
+        self.output_buffer = self.room_description(self.room)
 
-        pass
 
     def say(self, argument):
         """
@@ -151,9 +166,7 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.output_buffer = f'You say "{argument}"'
 
     def quit(self, argument):
         """
@@ -167,9 +180,8 @@ class Server(object):
         :return: None
         """
 
-        # TODO: YOUR CODE HERE
-
-        pass
+        self.done = True
+        self.output_buffer = "Goodbye!"
 
     def route(self):
         """
@@ -182,10 +194,14 @@ class Server(object):
         
         :return: None
         """
+        ROUTING_DISPATCH = {'move': self.move,
+                            'quit': self.quit,
+                            'say': self.say}
+        input_route = self.input_buffer.lower().split()[0]
 
-        # TODO: YOUR CODE HERE
+        routed_function = ROUTING_DISPATCH.get(input_route)
+        routed_function(" ".join(self.input_buffer.split()[1:]))
 
-        pass
 
     def push_output(self):
         """
@@ -196,10 +212,8 @@ class Server(object):
         
         :return: None 
         """
+        self.client_connection.sendall(b'Ok! ' + self.output_buffer.encode() + b'\n')
 
-        # TODO: YOUR CODE HERE
-
-        pass
 
     def serve(self):
         self.connect()

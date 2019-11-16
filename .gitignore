@@ -3,3 +3,7 @@
 
 # GENERAL PYTHON FILES
 __pycache__/
+
+# other
+env/
+.vscode/
