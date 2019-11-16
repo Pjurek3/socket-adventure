@@ -109,14 +109,12 @@ class Server(object):
          
         :return: None 
         """
-        try:
-            while True:
-                self.input_buffer = self.client_connection.recv(255).decode()
-                if len(self.input_buffer) < 255:
-                    break
-    
-        except Exception as e:
-            raise(e)
+
+        recieved = b''
+        while b'\n' not in recieved:
+            recieved += self.client_connection.recv(255)
+        
+        self.input_buffer = recieved.decode()
 
     def move(self, argument):
         """
@@ -146,9 +144,12 @@ class Server(object):
                                 (3, 'south'): 0,
                                 (2, 'west'): 0
                                 }
+        print((self.room, argument))
         next_room = room_movement_mapper.get((self.room, argument))
-        if next_room:
+        print(f'{next_room=}')
+        if next_room is not None:
             self.room = next_room
+        print(f'{self.room=}')
         self.output_buffer = self.room_description(self.room)
 
 
